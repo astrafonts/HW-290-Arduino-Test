@@ -6,7 +6,7 @@ Esses dois chips sao identicos com relacao ao pinos, mas o mapa de registros eh 
 Alem disso , o Endereco I2C do HMC8553 eh 0X1E e o endereco do QMC8553 eh 0X0D.
 
 O Codigo (hw-290test.ino) serve para testar os 3 sensores do HW-290 com arduino retornando os enderecos hexadecimal de cada um dos 3 sensores.
-E importante salientar que o QMC8553 esta conectado aos Pinos do MPU6050 (xcl e xda) e nao nos pinos da placa SDL e SDA, portanto requer q a comunicacao com o magnetometro seja feita via MPU-6050. no arquivo hw-290test.ino esse set up  esta sendo feito nas linhas 39 a 58.
+E importante salientar que o QMC8553 esta conectado aos Pinos do MPU6050 (xcl e xda) e nao nos pinos da placa SDL e SDA (veja schematico abaixo), portanto requer q a comunicacao com o magnetometro seja feita via MPU-6050. no arquivo hw-290test.ino esse set up  esta sendo feito nas linhas 39 a 58.
 
 Abaixo a saida do Monitor Serial q vc deve ter.
 
