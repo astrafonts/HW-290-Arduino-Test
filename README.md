@@ -6,7 +6,7 @@ Esses dois chips sao identicos com relacao ao pinos, mas o mapa de registros eh 
 Alem disso , o Endereco I2C do HMC8553 eh 0X1E e o endereco do QMC8553 eh 0X0D.
 
 O Codigo (hw-290test.ino) serve para testar os 3 sensores do HW-290 com arduino retornando os enderecos hexadecimal de cada um dos 3 sensores.
-E importante salientar q alguma peparacao nas settings do MPU-6050 eh necessaria para poder se comunicar com o QMC8553.
+E importante salientar q alguma peparacao nas settings do MPU-6050 eh necessaria para poder se comunicar com o QMC8553 (ja presente no arquivo hw-290test.ino nas linas 39 a 58).
 
 Abaixo a saida do Monitor Serial q vc deve ter.
 
