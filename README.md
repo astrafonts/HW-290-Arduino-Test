@@ -16,3 +16,7 @@ Abaixo a saida do Monitor Serial q vc deve ter.
 Abaixo a localizacao e os dispositivos principais do modulo
 
 ![HW290_IMG2](https://user-images.githubusercontent.com/100097972/154869127-06cf0ce4-8803-4cae-a18a-b4a71b3343b2.JPG)
+
+Um schematic do GY-87/HW-290 esta abaixo :
+
+![01](https://user-images.githubusercontent.com/100097972/154870822-f59a06d7-6a9e-4eaf-a94f-c436df253556.jpg)
