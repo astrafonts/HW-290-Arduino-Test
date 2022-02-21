@@ -2,6 +2,7 @@
 
 #define addr 0x0D //I2C Address for The HMC5883
 
+
 void setup() {
 
   Serial.begin(9600);
