@@ -1,5 +1,12 @@
 # HW-290-Arduino-Test
-Repositorio com Codigo (hw-290test.ino)  para testar os 3 sensores do HW-290 com arduino.
+
+O magnetometro HMC8553 deixou de ser fabricado pela HoneyWell ha muitos anos , mas um clone "QMC8553"  eh comum aparecer nas placas de modulos de arduino hoje.
+Esses dois chips sao identicos com relacao ao pinos, mas o mapa de registros eh diferente, entao requer alguma atencao na hora de programar um firmware que possa realmente utilizar o magnetometro do HW-290.
+
+Alem disso , o Endereco I2C do HMC8553 eh 0X1E e o endereco do QMC8553 eh 0X0D.
+
+O Codigo (hw-290test.ino) serve para testar os 3 sensores do HW-290 com arduino retornando os enderecos hexadecimal de cada um dos 3 sensores.
+E importante salientar q alguma peparacao nas settings do MPU-6050 eh necessaria para poder se comunicar com o QMC8553.
 
 Abaixo a saida do Monitor Serial q vc deve ter.
 
