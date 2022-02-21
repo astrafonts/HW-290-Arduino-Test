@@ -1,0 +1,208 @@
+      #include <Servo.h>
+#include "I2Cdev.h"
+#include "MPU6050_6Axis_MotionApps20.h"
+
+
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+#include "Wire.h"
+#endif
+MPU6050 mpu;
+Servo myservo;
+Servo myservob;
+int plusnine;
+float serp;
+float serpb;
+int plusnineb;
+int plusninb;
+#define OUTPUT_READABLE_YAWPITCHROLL
+#define LED_PIN 13 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
+bool blinkState = false;
+// MPU control/status vars
+bool dmpReady = false;  // set true if DMP init was successful
+uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
+uint8_t devStatus;      // return status after each device operation (0 = success, !0 = error)
+uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
+uint16_t fifoCount;     // count of all bytes currently in FIFO
+uint8_t fifoBuffer[64]; // FIFO storage buffer
+// orientation/motion vars
+Quaternion q;           // [w, x, y, z]         quaternion container
+VectorInt16 aa;         // [x, y, z]            accel sensor measurements
+VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measurements
+VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
+VectorFloat gravity;    // [x, y, z]            gravity vector
+float euler[3];         // [psi, theta, phi]    Euler angle container
+float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+float gyroPos = 0;
+int skibs = 10;
+// packet structure for InvenSense teapot demo
+uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\n' };
+
+
+
+// ================================================================
+// ===               INTERRUPT DETECTION ROUTINE                ===
+// ================================================================
+
+volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
+void dmpDataReady() {
+    mpuInterrupt = true;
+}
+
+
+
+// ================================================================
+// ===                      INITIAL SETUP                       ===
+// ================================================================
+
+void setup() {
+ 
+    myservob.attach(8);
+    myservo.attach(9);
+    pinMode(skibs, OUTPUT);
+    // join I2C bus (I2Cdev library doesn't do this automatically)
+    #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+        Wire.begin();
+        TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
+    #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+        Fastwire::setup(400, true);
+    #endif
+
+    mpu.initialize();
+
+    // verify connection
+   
+    devStatus = mpu.dmpInitialize();
+
+    // supply your own gyro offsets here, scaled for min sensitivity
+    mpu.setXGyroOffset(220);
+    mpu.setYGyroOffset(76);
+    mpu.setZGyroOffset(-85);
+    mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
+
+    // make sure it worked (returns 0 if so)
+   
+    mpu.setDMPEnabled(true);
+
+        // enable Arduino interrupt detection
+      
+        attachInterrupt(0, dmpDataReady, RISING);
+        mpuIntStatus = mpu.getIntStatus();
+        dmpReady = true;
+        packetSize = mpu.dmpGetFIFOPacketSize();
+    
+
+}
+
+
+
+// ================================================================
+// ===                    MAIN PROGRAM LOOP                     ===
+// ================================================================
+
+void loop() {
+    // if programming failed, don't try to do anything
+    if (!dmpReady) return;
+    // wait for MPU interrupt or extra packet(s) available
+    while (!mpuInterrupt && fifoCount < packetSize) {
+      
+    }
+
+    // reset interrupt flag and get INT_STATUS byte
+    mpuInterrupt = false;
+    mpuIntStatus = mpu.getIntStatus();
+
+    // get current FIFO count
+    fifoCount = mpu.getFIFOCount();
+
+    // check for overflow (this should never happen unless our code is too inefficient)
+    if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
+        // reset so we can continue cleanly
+        mpu.resetFIFO();
+       
+
+    // otherwise, check for DMP data ready interrupt (this should happen frequently)
+    } else if (mpuIntStatus & 0x02) {
+        // wait for correct available data length, should be a VERY short wait
+        while (fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
+
+        // read a packet from FIFO
+        mpu.getFIFOBytes(fifoBuffer, packetSize);
+        
+        // track FIFO count here in case there is > 1 packet available
+        // (this lets us immediately read more without waiting for an interrupt)
+        fifoCount -= packetSize;
+
+        #ifdef OUTPUT_READABLE_YAWPITCHROLL
+            
+            mpu.dmpGetQuaternion(&q, fifoBuffer);
+            mpu.dmpGetGravity(&gravity, &q);     
+            mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+            
+plusnine = 90+ (ypr[1] * 180/M_PI) ;
+plusnineb = 90- (ypr[2] * 180/M_PI) ;   //CORRETO = 90- (ypr[2] * 180/M_PI)
+
+
+ 
+/*
+
+if  (plusnine >= 85 && plusnine <= 95)myservo.write(80);   
+if  (plusnine >= 95 && plusnine <= 105)myservo.write(plusnine-10);   
+if  (plusnine >= 75 && plusnine <= 85)myservo.write(plusnine-10);   
+if  (plusnine >= 60 && plusnine <= 75)myservo.write(60);
+if  (plusnine >= 105 && plusnine <= 120)myservo.write(100);
+if  (plusnineb >= 120 && plusnine <= 60)myservo.write(80);
+
+if  (plusnineb >= 85 && plusnineb <= 95)myservob.write(80);   
+if  (plusnineb >= 95 && plusnineb <= 105)myservob.write(plusnineb-10);   
+if  (plusnineb >= 75 && plusnineb <= 85)myservob.write(plusnineb-10);   
+if  (plusnineb >= 60 && plusnineb <= 75)myservob.write(60);
+if  (plusnineb >= 105 && plusnineb <= 120)myservob.write(100);
+if  (plusnineb >= 120 && plusnineb <= 60)myservob.write(80);
+
+  
+
+//Control system 
+//aligned with the board 
+if  (plusnine >= 87 && plusnine <= 93)myservo.write(90);  
+if  (plusnine >= 65 && plusnine < 87)myservo.write(plusnine);
+if  (plusnine > 93 && plusnine <= 125)myservo.write(plusnine);
+
+if  (plusnineb >= 87 && plusnineb <= 93)myservob.write(90);  
+if  (plusnineb >= 70 && plusnineb < 87)myservob.write(plusnineb);
+if  (plusnineb > 93 && plusnineb <= 110)myservob.write(plusnineb);
+//Ejection system 
+*/
+
+if  (plusnine >= 87 && plusnine <= 93)serp = 90;  
+if  (plusnine >= 75 && plusnine < 87 or plusnine > 93 && plusnine <= 105)serp = plusnine;
+if  (plusnineb >= 87 && plusnineb <= 93)serpb = 90;  
+if  (plusnineb >= 75 && plusnineb < 87 or plusnineb > 93 && plusnineb <= 105)serpb = plusnineb;
+myservob.write(serpb);
+myservo.write(serp);
+
+
+if  (plusnineb > 178 or plusnine > 178 or plusnineb < 3 or plusnine < 3){
+  delay(1000);
+digitalWrite(skibs, HIGH);
+delay(4000);
+
+    }
+else digitalWrite(skibs, LOW);
+
+
+/*
+if  (plusnineb < 30 && plusnine < 30)digitalWrite(skib, HIGH);
+else digitalWrite(skib, LOW);
+*/
+            //if (servoPos < 0) { servoPos = servoPos * -1; }
+            
+        #endif
+
+
+        // blink LED to indicate activity
+        blinkState = !blinkState;
+
+      
+    }
+}
+
